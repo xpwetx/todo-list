@@ -1,4 +1,3 @@
-
 import './App.css'
 
 function App() {
@@ -7,11 +6,11 @@ function App() {
     {id: 2, title: "take notes"},
     {id: 3, title: "code out app"},
   ]
-
+ 
 
   return (
-    <div className="App">
-      <h1>To do:</h1>
+    <div>
+      <h1>My Todos</h1>
       <ul>
         {todos.map(todo => <li key={todo.id}>{todo.title}</li>)}
       </ul>
@@ -19,4 +18,4 @@ function App() {
   );
 }
 
-export default App;
+export default App
