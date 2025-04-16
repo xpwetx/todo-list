@@ -1,34 +1,33 @@
 import React, { useState, useRef } from 'react';
 
+function TodoForm({ onAddTodo }) {
+  const [workingTodo, setWorkingTodo] = useState(''); // controlled input
 
-function TodoForm({onAddTodo}) {
-    const [inputValue, setInputValue] = useState('');
-    const inputRef = useRef(null);
+  const handleAddTodo = (e) => {
+    e.preventDefault();
+    if (workingTodo.trim() === '') return;
 
-    const handleInputChange = (e) => {
-        setInputValue(e.target.value);
+    const newTodo = {
+      title: workingTodo,
+      id: Date.now() + Math.random(),
+      isCompleted: false,
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        onAddTodo(inputValue);
-        setInputValue('');
-    };
+    onAddTodo(newTodo); //pass new todo to parent
+    setWorkingTodo(''); // clear input after submit
+  };
 
-    return (
-        <form onSubmit={handleSubmit}>
-            <input
-            ref ={inputRef}
-            type="text"
-            value={inputValue}
-            onChange={handleInputChange}
-            placeholder="Enter a new todo"
-        />
-        <button type="submit">Add Todo</button>
+  return (
+    <form onSubmit={handleAddTodo}>
+      <input
+        type="text"
+        placeholder="Add a todo..."
+        value={workingTodo} // controlled by state
+        onChange={(e) => setWorkingTodo(e.target.value)} // updates state
+      />
+      <button type="submit" disabled={workingTodo.trim() === ''}>Add Todo</button>
     </form>
-    );
+  );
 }
- 
-   
 
 export default TodoForm;
