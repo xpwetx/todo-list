@@ -6,20 +6,25 @@ import TodoList from './TodoList';
 function App() {
   const [todoList, setTodoList] = useState([]);
 
-  // handleAddTodo function to add new todos to list
-  function handleAddTodo(newTodo) {
-    if (newTodo) {
-      setTodoList([...todoList, { id: Date.now(), title: newTodo }]);
-    }
-  }
+  const addTodo = (newTodo) => {
+    setTodoList([...todoList, newTodo]);
+  };
+
+  const completeTodo = (id) => {
+    const updateTodos = todoList.map((todo) => {
+      if (todo.id === id) {
+        return {...todo, isCompleted: true};
+      }
+    });
+    setTodoList(updateTodos);
+  };
 
   return (
     <div>
-      <h1>Todo List</h1>
-      <TodoForm onAddTodo={handleAddTodo} />
-      <TodoList todoList={todoList} />
+      <h1>My Todos</h1>
+    <TodoForm onAddTodo={addTodo} />
+    <TodoList todoList={todoList} onCompleteTodo={completeTodo} />
     </div>
   );
 }
-
-export default App;
+   export default App;
