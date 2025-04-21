@@ -1,5 +1,5 @@
 import React from 'react';
-import TodoListItem from './TodoListItem';
+import TodoListItem from './features/TodoList/TodoListItem';
 
   
 const TodoList = ({todoList, onCompleteTodo}) => {
