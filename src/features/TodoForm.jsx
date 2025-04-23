@@ -1,33 +1,37 @@
 import React, { useState, useRef } from 'react';
+import TextInputWithLabel from '../shared/TextInputWithLabel';
 
 function TodoForm({ onAddTodo }) {
-  const [workingTodo, setWorkingTodo] = useState(''); // controlled input
+  const [title, setTitle] = useState(''); // controlled input
+const inputRef = useRef(null);
 
-  const handleAddTodo = (e) => {
-    e.preventDefault();
-    if (workingTodo.trim() === '') return;
+const handleChange = (e) => {
+  setTitle(e.target.value);
+};
 
-    const newTodo = {
-      title: workingTodo,
-      id: Date.now() + Math.random(),
-      isCompleted: false,
-    };
+const handleSubmit = (e) => {
+  e.preventDefault();
 
-    onAddTodo(newTodo); //pass new todo to parent
-    setWorkingTodo(''); // clear input after submit
-  };
+
+    if (title.trim() === '') return;
+onAddTodo(title);
+setTitle('');
+inputRef.current?.focus();
+};
 
   return (
-    <form onSubmit={handleAddTodo}>
-      <input
-        type="text"
-        placeholder="Add a todo..."
-        value={workingTodo} // controlled by state
-        onChange={(e) => setWorkingTodo(e.target.value)} // updates state
-      />
-      <button type="submit" disabled={workingTodo.trim() === ''}>Add Todo</button>
+    <form onSubmit={handleSubmit}>
+      <TextInputWithLabel
+      elementId='todo-input'
+        label='Todo'
+        value={title}
+        onChange={handleChange}
+        ref={inputRef}
+        />
+
+      <button type="submit" disabled={title.trim() === ''}>Add Todo</button>
     </form>
   );
-}
 
+}
 export default TodoForm;
