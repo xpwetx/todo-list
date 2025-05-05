@@ -1,15 +1,34 @@
 import React from 'react';
 import TodoListItem from './TodoListItem';
 
-const TodoList = ({ todos, onUpdateTodo }) => {
+const TodoList = ({ todoList, isLoading, onUpdateTodo, onDeleteTodo, errorMessage }) => {
+  if (isLoading) {
+    return <p>Todo list loading...</p>;
+  }
+
   return (
-    <ul>
-      {todos.map((todo) => (
-        <li key={todo.id}>
-          <TodoListItem todo={todo} onUpdateTodo={onUpdateTodo} />
-        </li>
-      ))}
-    </ul>
+    <section>
+      {errorMessage ? (
+        <div role="alert" style={{ color: 'red' }}>
+          <p>Error: {errorMessage}</p>
+        </div>
+      ) : null}
+      
+      {todoList.length === 0 ? (
+        <p>No todos found.</p>
+      ) : (
+        <ul>
+          {todoList.map((todo) => (
+            <TodoListItem 
+            key={todo.id} 
+            todo={todo}
+            onUpdateTodo={onUpdateTodo}
+            onDeleteTodo={onDeleteTodo}
+             />
+          ))}
+        </ul>
+      )}
+    </section>
   );
 };
 

@@ -1,37 +1,31 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import TextInputWithLabel from '../shared/TextInputWithLabel';
 
-function TodoForm({ onAddTodo }) {
+function TodoForm({ addTodo, isSaving }) {
   const [title, setTitle] = useState(''); // controlled input
-const inputRef = useRef(null);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-const handleChange = (e) => {
-  setTitle(e.target.value);
-};
+    if (!title.trim()) return;
 
-const handleSubmit = (e) => {
-  e.preventDefault();
-
-
-    if (title.trim() === '') return;
-onAddTodo(title);
-setTitle('');
-inputRef.current?.focus();
-};
+    await addTodo({ title, isCompleted: false });
+    setTitle('');
+    console.log(title);
+  };
 
   return (
     <form onSubmit={handleSubmit}>
       <TextInputWithLabel
-      elementId='todo-input'
-        label='Todo'
+        elementId="new-todo"
+        label="New Todo"
         value={title}
-        onChange={handleChange}
-        ref={inputRef}
-        />
-
-      <button type="submit" disabled={title.trim() === ''}>Add Todo</button>
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Enter a new todo"
+      />
+      <button type="submit" disabled={isSaving}>
+        {isSaving ? 'Saving...' : 'Add Todo'}
+      </button>
     </form>
   );
-
 }
 export default TodoForm;
