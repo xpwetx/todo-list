@@ -2,15 +2,32 @@ import './App.css';
 import React, { useState, useEffect } from 'react';
 import TodoForm from './features/TodoForm';
 import TodoList from './features/TodoList/TodoList';
+import TodosViewForm from './features/TodosViewForm';
+
+const preventRefresh = (e) => e.preventDefault();
 
 const url = `https://api.airtable.com/v0/${import.meta.env.VITE_BASE_ID}/${import.meta.env.VITE_TABLE_NAME}`;
 const token = `Bearer ${import.meta.env.VITE_PAT}`;
 
+const encodeUrl = ({ sortField, sortDirection, queryString }) => {
+  let sortQuery = `sort[0][field]=${sortField}&sort[0][direction]=${sortDirection}`;
+  let searchQuery = '';
+
+  if (queryString) {
+    searchQuery = `&filterByFormula=SEARCH('${queryString.replace(/"/g, '\\"')}', {title})`;
+  }
+  return encodeURI(`${url}?${sortQuery}${searchQuery}`);
+};
+
+
 const App = () => {
+  const [sortField, setSortField] = useState('createdTime');
+  const [sortDirection, setSortDirection] = useState('desc');
   const [todoList, setTodoList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [queryString, setQueryString] = useState('');
 
   useEffect(() => {
     const fetchTodos = async () => {
@@ -20,7 +37,10 @@ const App = () => {
           method: 'GET',
           headers: { Authorization: token },
         };
-        const response = await fetch(url, options);
+        const response = await fetch(
+          encodeUrl({ sortField, sortDirection, queryString }),
+          options
+        );
         if (!response.ok) throw new Error('Failed to fetch todos');
         const { records } = await response.json();
         const todos = records.map((record) => ({
@@ -36,7 +56,7 @@ const App = () => {
       }
     };
     fetchTodos();
-  }, []);
+  }, [sortField, sortDirection, queryString]);
 
   const addTodo = async (newTodo) => {
     const payload = {
@@ -53,7 +73,7 @@ const App = () => {
     try {
       setIsSaving(true);
 
-      const resp = await fetch(url, {
+      const resp = await fetch(encodeUrl({ sortField, sortDirection, queryString }), {
         method: 'POST',
         headers: {
           Authorization: token,
@@ -108,7 +128,10 @@ const App = () => {
     );
 
     try {
-      const resp = await fetch(url, options);
+      const resp = await fetch(
+        encodeUrl({ sortField, sortDirection, queryString }),
+        options
+      );
       if (!resp.ok) throw new Error(resp.statusText);
 
       const { records } = await resp.json();
@@ -160,9 +183,19 @@ const App = () => {
         onDeleteTodo={deleteTodo}
         onUpdateTodo={updateTodo}
       />
-      {errorMessage && (
-        <div>
+  
           <hr />
+
+          <TodosViewForm
+            sortField={sortField}
+            setSortField={setSortField}
+            sortDirection={sortDirection}
+            setSortDirection={setSortDirection}
+            queryString={queryString}
+            setQueryString={setQueryString}
+          />
+{errorMessage && (
+  <div>
           <p>Error: {errorMessage}</p>
           <button onClick={() => setErrorMessage('')}>Dismiss</button>
         </div>
