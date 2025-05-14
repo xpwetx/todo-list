@@ -1,5 +1,5 @@
 import './App.css';
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import TodoForm from './features/TodoForm';
 import TodoList from './features/TodoList/TodoList';
 import TodosViewForm from './features/TodosViewForm';
@@ -8,16 +8,6 @@ const preventRefresh = (e) => e.preventDefault();
 
 const url = `https://api.airtable.com/v0/${import.meta.env.VITE_BASE_ID}/${import.meta.env.VITE_TABLE_NAME}`;
 const token = `Bearer ${import.meta.env.VITE_PAT}`;
-
-const encodeUrl = ({ sortField, sortDirection, queryString }) => {
-  let sortQuery = `sort[0][field]=${sortField}&sort[0][direction]=${sortDirection}`;
-  let searchQuery = '';
-
-  if (queryString) {
-    searchQuery = `&filterByFormula=SEARCH('${queryString.replace(/"/g, '\\"')}', {title})`;
-  }
-  return encodeURI(`${url}?${sortQuery}${searchQuery}`);
-};
 
 
 const App = () => {
@@ -29,6 +19,15 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [queryString, setQueryString] = useState('');
 
+  const encodeUrl = useCallback(() => {
+    let sortQuery = `sort[0][field]=${sortField}&sort[0][direction]=${sortDirection}`;
+    let searchQuery = '';
+    if (queryString?.trim()) {
+      searchQuery = `&filterByFormula=SEARCH('${queryString.replace(/"/g, '\\"')}', {title})`;
+    }
+    return encodeURI(`${url}?${sortQuery}${searchQuery}`);
+  }, [sortField, sortDirection, queryString]);
+
   useEffect(() => {
     const fetchTodos = async () => {
       setIsLoading(true);
@@ -37,10 +36,7 @@ const App = () => {
           method: 'GET',
           headers: { Authorization: token },
         };
-        const response = await fetch(
-          encodeUrl({ sortField, sortDirection, queryString }),
-          options
-        );
+        const response = await fetch(encodeUrl(), options);
         if (!response.ok) throw new Error('Failed to fetch todos');
         const { records } = await response.json();
         const todos = records.map((record) => ({
@@ -73,14 +69,17 @@ const App = () => {
     try {
       setIsSaving(true);
 
-      const resp = await fetch(encodeUrl({ sortField, sortDirection, queryString }), {
-        method: 'POST',
-        headers: {
-          Authorization: token,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      const resp = await fetch(
+        encodeUrl(),
+        {
+          method: 'POST',
+          headers: {
+            Authorization: token,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        }
+      );
       if (!resp.ok) throw new Error(resp.statusText);
 
       const { records } = await resp.json();
@@ -129,7 +128,7 @@ const App = () => {
 
     try {
       const resp = await fetch(
-        encodeUrl({ sortField, sortDirection, queryString }),
+        encodeUrl(),
         options
       );
       if (!resp.ok) throw new Error(resp.statusText);
@@ -177,25 +176,27 @@ const App = () => {
     <main>
       <h1>Todos</h1>
       <TodoForm addTodo={addTodo} isSaving={isSaving} />
+      {isSaving && <p>Saving new todo...</p>}
+     
       <TodoList
         todoList={todoList}
         isLoading={isLoading}
         onDeleteTodo={deleteTodo}
         onUpdateTodo={updateTodo}
       />
-  
-          <hr />
 
-          <TodosViewForm
-            sortField={sortField}
-            setSortField={setSortField}
-            sortDirection={sortDirection}
-            setSortDirection={setSortDirection}
-            queryString={queryString}
-            setQueryString={setQueryString}
-          />
-{errorMessage && (
-  <div>
+      <hr />
+
+      <TodosViewForm
+        sortField={sortField}
+        setSortField={setSortField}
+        sortDirection={sortDirection}
+        setSortDirection={setSortDirection}
+        queryString={queryString}
+        setQueryString={setQueryString}
+      />
+      {errorMessage && (
+        <div>
           <p>Error: {errorMessage}</p>
           <button onClick={() => setErrorMessage('')}>Dismiss</button>
         </div>

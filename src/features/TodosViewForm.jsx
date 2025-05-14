@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 const TodosViewForm = ({
   sortField,
@@ -8,37 +8,65 @@ const TodosViewForm = ({
   queryString,
   setQueryString,
 }) => {
-  const preventRefresh = (e) => e.preventDefault();
+  const [localQueryString, setLocalQueryString] = useState(queryString);
+
+  useEffect(() => {
+    const debounce = setTimeout(() => {
+      if (queryString !== localQueryString) {
+        setQueryString(localQueryString);
+      }
+    }, 500);
+
+    return () => clearTimeout(debounce);
+  }, [localQueryString, setQueryString]);
+
+  const handleSortChange = (e) => {
+    setSortField(e.target.value);
+  };
+
+  const handleDirectionChange = (e) => {
+    setSortDirection(e.target.value);
+  };
+
+  const handleSearchChange = (e) => {
+    setLocalQueryString(e.target.value);
+  };
+
+  const handleClear = () => {
+    setLocalQueryString('');
+  };
 
   return (
-    <form onSubmit={preventRefresh}>
-      <div>
-        <label htmlFor='search'>Search todos:</label>
-        <input
-        type='text'
-        id='search'
-        value={queryString}
-        onChange={(e) => setQueryString(e.target.value)}
-        />
-        <button
-        type='button'
-        onClick={() => setQueryString('')}
-        >
-            Clear
-        </button>
-        </div>
-        <div>
-        <label htmlFor="sortField">Sort by:</label>
-        <select
-          id="sortField"
-          value={sortField}
-          onChange={(e) => setSortField(e.target.value)}
-        >
-          <option value="title">Title</option>
-          <option value="createdTime">Time added</option>
-        </select>
-      </div>
-    </form>
+    <section>
+      <h2>View options:</h2>
+      <label htmlFor="sortField">Sort by:</label>
+      <select id="sortField" value={sortField} onChange={handleSortChange}>
+        <option value="createdTime">Created time:</option>
+        <option value="title">Title:</option>
+      </select>
+
+      <label htmlFor="sortDirection">Direction:</label>
+      <select
+        id="sortDirection"
+        value={sortDirection}
+        onChange={handleDirectionChange}
+      >
+        <option value="asc">Ascending</option>
+        <option value="desc">Descending</option>
+      </select>
+
+      <label htmlFor="searchInput">Search:</label>
+      <input
+        id="searchInput"
+        type="text"
+        value={localQueryString}
+        onChange={handleSearchChange}
+      />
+
+      <button onClick={handleClear} disabled={!localQueryString}>
+        Clear
+      </button>
+    </section>
   );
 };
 
