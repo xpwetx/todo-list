@@ -1,14 +1,15 @@
 import './App.css';
+import styles from './App.module.css';
 import React, { useCallback, useState, useEffect } from 'react';
 import TodoForm from './features/TodoForm';
 import TodoList from './features/TodoList/TodoList';
 import TodosViewForm from './features/TodosViewForm';
 
+<img src="/logo.png" alt="Logo" style={{ width: '100px' }} />;
 const preventRefresh = (e) => e.preventDefault();
 
 const url = `https://api.airtable.com/v0/${import.meta.env.VITE_BASE_ID}/${import.meta.env.VITE_TABLE_NAME}`;
 const token = `Bearer ${import.meta.env.VITE_PAT}`;
-
 
 const App = () => {
   const [sortField, setSortField] = useState('createdTime');
@@ -69,17 +70,14 @@ const App = () => {
     try {
       setIsSaving(true);
 
-      const resp = await fetch(
-        encodeUrl(),
-        {
-          method: 'POST',
-          headers: {
-            Authorization: token,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      const resp = await fetch(encodeUrl(), {
+        method: 'POST',
+        headers: {
+          Authorization: token,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
       if (!resp.ok) throw new Error(resp.statusText);
 
       const { records } = await resp.json();
@@ -127,10 +125,7 @@ const App = () => {
     );
 
     try {
-      const resp = await fetch(
-        encodeUrl(),
-        options
-      );
+      const resp = await fetch(encodeUrl(), options);
       if (!resp.ok) throw new Error(resp.statusText);
 
       const { records } = await resp.json();
@@ -173,35 +168,47 @@ const App = () => {
   };
 
   return (
-    <main>
-      <h1>Todos</h1>
-      <TodoForm addTodo={addTodo} isSaving={isSaving} />
-      {isSaving && <p>Saving new todo...</p>}
-     
-      <TodoList
-        todoList={todoList}
-        isLoading={isLoading}
-        onDeleteTodo={deleteTodo}
-        onUpdateTodo={updateTodo}
-      />
+    <div className={styles.appContainer}>
+      <main>
+        <h1>Todos</h1>
+        <TodoForm addTodo={addTodo} isSaving={isSaving} />
+        {isSaving && <p>Saving new todo...</p>}
 
-      <hr />
+        <TodoList
+          todoList={todoList}
+          isLoading={isLoading}
+          onDeleteTodo={deleteTodo}
+          onUpdateTodo={updateTodo}
+        />
 
-      <TodosViewForm
-        sortField={sortField}
-        setSortField={setSortField}
-        sortDirection={sortDirection}
-        setSortDirection={setSortDirection}
-        queryString={queryString}
-        setQueryString={setQueryString}
-      />
-      {errorMessage && (
-        <div>
-          <p>Error: {errorMessage}</p>
-          <button onClick={() => setErrorMessage('')}>Dismiss</button>
-        </div>
-      )}
-    </main>
+        <hr />
+
+        <TodosViewForm
+          sortField={sortField}
+          setSortField={setSortField}
+          sortDirection={sortDirection}
+          setSortDirection={setSortDirection}
+          queryString={queryString}
+          setQueryString={setQueryString}
+        />
+        {errorMessage && (
+          <div className={styles.errorBox}>
+            <div
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5em' }}
+            >
+              <img
+                src="/error-icon.png"
+                alt="Error icon"
+                style={{ width: '20px', height: '20px' }}
+              />
+              <p style={{ margin: 0 }}>Error: {errorMessage}</p>
+            </div>
+
+            <button onClick={() => setErrorMessage('')}>Dismiss</button>
+          </div>
+        )}
+      </main>
+    </div>
   );
 };
 
