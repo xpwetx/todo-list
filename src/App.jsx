@@ -1,24 +1,15 @@
 import './App.css';
-import React, { useState, useEffect } from 'react';
+import styles from './App.module.css';
+import React, { useCallback, useState, useEffect } from 'react';
 import TodoForm from './features/TodoForm';
 import TodoList from './features/TodoList/TodoList';
 import TodosViewForm from './features/TodosViewForm';
 
+<img src="/logo.png" alt="Logo" style={{ width: '100px' }} />;
 const preventRefresh = (e) => e.preventDefault();
 
 const url = `https://api.airtable.com/v0/${import.meta.env.VITE_BASE_ID}/${import.meta.env.VITE_TABLE_NAME}`;
 const token = `Bearer ${import.meta.env.VITE_PAT}`;
-
-const encodeUrl = ({ sortField, sortDirection, queryString }) => {
-  let sortQuery = `sort[0][field]=${sortField}&sort[0][direction]=${sortDirection}`;
-  let searchQuery = '';
-
-  if (queryString) {
-    searchQuery = `&filterByFormula=SEARCH('${queryString.replace(/"/g, '\\"')}', {title})`;
-  }
-  return encodeURI(`${url}?${sortQuery}${searchQuery}`);
-};
-
 
 const App = () => {
   const [sortField, setSortField] = useState('createdTime');
@@ -29,6 +20,15 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [queryString, setQueryString] = useState('');
 
+  const encodeUrl = useCallback(() => {
+    let sortQuery = `sort[0][field]=${sortField}&sort[0][direction]=${sortDirection}`;
+    let searchQuery = '';
+    if (queryString?.trim()) {
+      searchQuery = `&filterByFormula=SEARCH('${queryString.replace(/"/g, '\\"')}', {title})`;
+    }
+    return encodeURI(`${url}?${sortQuery}${searchQuery}`);
+  }, [sortField, sortDirection, queryString]);
+
   useEffect(() => {
     const fetchTodos = async () => {
       setIsLoading(true);
@@ -37,10 +37,7 @@ const App = () => {
           method: 'GET',
           headers: { Authorization: token },
         };
-        const response = await fetch(
-          encodeUrl({ sortField, sortDirection, queryString }),
-          options
-        );
+        const response = await fetch(encodeUrl(), options);
         if (!response.ok) throw new Error('Failed to fetch todos');
         const { records } = await response.json();
         const todos = records.map((record) => ({
@@ -73,7 +70,7 @@ const App = () => {
     try {
       setIsSaving(true);
 
-      const resp = await fetch(encodeUrl({ sortField, sortDirection, queryString }), {
+      const resp = await fetch(encodeUrl(), {
         method: 'POST',
         headers: {
           Authorization: token,
@@ -128,10 +125,7 @@ const App = () => {
     );
 
     try {
-      const resp = await fetch(
-        encodeUrl({ sortField, sortDirection, queryString }),
-        options
-      );
+      const resp = await fetch(encodeUrl(), options);
       if (!resp.ok) throw new Error(resp.statusText);
 
       const { records } = await resp.json();
@@ -174,33 +168,47 @@ const App = () => {
   };
 
   return (
-    <main>
-      <h1>Todos</h1>
-      <TodoForm addTodo={addTodo} isSaving={isSaving} />
-      <TodoList
-        todoList={todoList}
-        isLoading={isLoading}
-        onDeleteTodo={deleteTodo}
-        onUpdateTodo={updateTodo}
-      />
-  
-          <hr />
+    <div className={styles.appContainer}>
+      <main>
+        <h1>Todos</h1>
+        <TodoForm addTodo={addTodo} isSaving={isSaving} />
+        {isSaving && <p>Saving new todo...</p>}
 
-          <TodosViewForm
-            sortField={sortField}
-            setSortField={setSortField}
-            sortDirection={sortDirection}
-            setSortDirection={setSortDirection}
-            queryString={queryString}
-            setQueryString={setQueryString}
-          />
-{errorMessage && (
-  <div>
-          <p>Error: {errorMessage}</p>
-          <button onClick={() => setErrorMessage('')}>Dismiss</button>
-        </div>
-      )}
-    </main>
+        <TodoList
+          todoList={todoList}
+          isLoading={isLoading}
+          onDeleteTodo={deleteTodo}
+          onUpdateTodo={updateTodo}
+        />
+
+        <hr />
+
+        <TodosViewForm
+          sortField={sortField}
+          setSortField={setSortField}
+          sortDirection={sortDirection}
+          setSortDirection={setSortDirection}
+          queryString={queryString}
+          setQueryString={setQueryString}
+        />
+        {errorMessage && (
+          <div className={styles.errorBox}>
+            <div
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5em' }}
+            >
+              <img
+                src="/error-icon.png"
+                alt="Error icon"
+                style={{ width: '20px', height: '20px' }}
+              />
+              <p style={{ margin: 0 }}>Error: {errorMessage}</p>
+            </div>
+
+            <button onClick={() => setErrorMessage('')}>Dismiss</button>
+          </div>
+        )}
+      </main>
+    </div>
   );
 };
 
