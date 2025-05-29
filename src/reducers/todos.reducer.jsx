@@ -7,8 +7,9 @@ export const actions = {
   endRequest: 'endRequest',
   updateTodo: 'updateTodo',
   completeTodo: 'completeTodo',
-  reverTodo: 'reverTodo',
+  revertTodo: 'revertTodo',
   clearError: 'clearError',
+  deleteTodo: 'deleteTodo'
 };
 
 export const initialState = {
@@ -27,20 +28,16 @@ export function todosReducer(state = initialState, action) {
       };
 
     case actions.loadTodos:
-        const todos = action.records.map(record => ({
-            id: record.id,
-            fields: {
-                title: record.fields.title,
-                isCompleted: record.fields.isComplete ?? false,
-            },
-        }));
-
       return {
         ...state,
-        todoList: todos,
+        todoList: action.records.map(record => ({
+          id: record.id,
+          title: record.fields.title,
+          isCompleted: record.fields.isCompleted || false,
+        })),
         isLoading: false,
       };
-    }
+    
     case actions.setLoadError:
       return {
         ...state,
@@ -55,14 +52,12 @@ export function todosReducer(state = initialState, action) {
         isSaving: true,
       };
 
-    case actions.addTodo:
+    case actions.addTodo: {
         const record = action.record;
         const savedTodo = {
             id: record.id,
-            fields: {
-                title: record.fields.title,
-                isCompleted: record.fields.isCompleted ?? false,
-            },
+            title: record.fields.title,
+                isCompleted: record.fields.isCompleted || false,
         };
       return {
         ...state,
@@ -78,24 +73,55 @@ export function todosReducer(state = initialState, action) {
         isSaving: false,
       };
 
-      
-    case actions.updateTodo:
+      case actions.updateTodo: {
+        const updatedTodos = state.todoList.map(todo =>
+            todo.id === action.editedTodo.id ? action.editedTodo : todo
+        );
+return {
+  ...state,
+  todoList: updatedTodos,
+};
+      }
+
+      case actions.revertTodo: {
+        const updatedTodos = state.todoList.map(todo =>
+          todo.id === action.editedTodo.id ? action.editedTodo : todo
+        );
+        return {
+          ...state,
+          todoList: updatedTodos,
+          errorMessage: action.editedTodo.error || 'Update failed',
+        };
+      }
+
+    case actions.completeTodo: {
+        const updatedTodos = state.todoList.map(todo => 
+            todo.id === action.id ? { ...todo, isCompleted: true } : todo       
+          );
       return {
         ...state,
+        todoList: updatedTodos,
       };
-    case actions.completeTodo:
+  
+    }
+
+    case actions.deleteTodo: {
+      const filteredTodos = state.todoList.filter(todo => todo.id !== action.id);
       return {
         ...state,
+        todoList: filteredTodos,
       };
-    case actions.revertTodo:
-      return {
-        ...state,
-      };
+    }
+
     case actions.clearError:
       return {
         ...state,
+        errorMessage: '',
       };
+
     default:
       return state;
   }
 }
+
+export default todosReducer;
