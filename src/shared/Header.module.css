@@ -1,0 +1,27 @@
+.header {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    position: relative;
+
+}
+
+nav {
+    position: absolute;
+    top: 0;
+    right: 20px;
+}
+
+nav a {
+    align-items: center;
+    margin-left: 1rem;
+    text-decoration: none;
+}
+
+.active {
+    color: gray;
+}
+
+.inactive {
+    color: black;
+}
