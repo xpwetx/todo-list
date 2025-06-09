@@ -1,7 +1,6 @@
 import React from 'react';
-import TodoListItem from './TodoListItem';
+import TodoListItem from './TodoList/TodoListItem';
 import styles from './TodoList'
-
 const TodoList = ({ todoList, isLoading, onUpdateTodo, onDeleteTodo, errorMessage }) => {
   if (isLoading) {
     return <p>Todo list loading...</p>;
